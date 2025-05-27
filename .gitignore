@@ -187,4 +187,7 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
-AFND.txt
+AFD.txt
+AFN.txt
+COMP.txt
+REV.txt
