@@ -31,8 +31,10 @@ class GrammarLoader:
             symbols = [s.strip() for s in match.group(1).split(',')]
 
         grammar_file_txt = open(file_path, 'r', encoding='utf-8').read()
+        print('LEGEND:\n')
         for i, original_symbol in enumerate(symbols):
             grammar_file_txt = grammar_file_txt.replace(original_symbol, f'q{i}')
+            print(f'{original_symbol} => q{i}')
 
         lines = [line.strip() for line in grammar_file_txt.split('\n') if line.strip()]
         grammar_symbols = lines[0].replace('# Gramática: G =', '')
@@ -50,8 +52,10 @@ class GrammarLoader:
             else:
                 productions.append([non_terminal,[symbol]])
 
-        grammar[1].append('ε')
+        grammar[0].append(f'q{len(grammar[0])}')
         grammar[2] = productions
+
+        print(grammar[0])
 
         return GLUD(non_terminals=grammar[0],
                     terminals=grammar[1],
@@ -146,7 +150,7 @@ class AutomatonLoader:
         transition_function_text = '\n '.join(transition_function)
 
         text = f'''
-        # AFN Original
+        # AFN
         Q: {states_text}  
         Σ: {alphabet_text}  
         δ:  
@@ -157,6 +161,7 @@ class AutomatonLoader:
         text = '\n'.join([line.strip() for line in text.splitlines()])
 
         open(filename, 'w').write(text)
+        print('AFND:' , text, '\n\n')
 
     @staticmethod
     def format_state(state):
@@ -190,7 +195,7 @@ class AutomatonLoader:
         transition_function_text = '\n '.join(transition_function)
 
         text = f'''
-        # AFN Original
+        # AFD
         Q: {states_text}  
         Σ: {alphabet_text}  
         δ:  
@@ -201,3 +206,5 @@ class AutomatonLoader:
         text = '\n'.join([line.strip() for line in text.splitlines()])
 
         open(filename, 'w').write(text)
+        print('AFD:' , text, '\n\n')
+

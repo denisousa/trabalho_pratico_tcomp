@@ -3,27 +3,9 @@ from GLUD import GLUD
 from AFND import AFND
 from itertools import chain, combinations
 from collections import deque
+from state import State
+EPSILON_SYMBOL = 'ε'
 
-def remove_unreachable_states(transitions, start_state):
-    reachable = set()
-    queue = deque([start_state])
-    
-    while queue:
-        current = queue.popleft()
-        if current in reachable:
-            continue
-        reachable.add(current)
-        for [x, y], z in transitions:
-            if x == current and z not in reachable:
-                queue.append(z)
-
-    return [[[x, y], z] for [[x, y], z] in transitions if x in reachable and z in reachable]
-
-
-def all_subsets(s: str):
-    chars = list(s)
-    subs = list(chain.from_iterable(combinations(chars, r) for r in range(len(chars)+1)))
-    return [''.join(sub) for sub in subs]
 
 class Convert:
     @staticmethod
@@ -46,71 +28,88 @@ class Convert:
                 transition_function.append([[state, chain[0]], chain[1]])
 
         
+        grammar.non_terminals.append(final_state)
         return AFND(states=grammar.non_terminals,
              alphabet=grammar.terminals,
              transition_function=transition_function,
              start_state=grammar.start_symbol,
              accept_states=[final_state]) 
     
+    def convert_AFND_AFD(afnd):
+        afd = AFD()
+
+        afd.start_state = Convert.epsilon_closure(afnd, State(afnd.start_state))
+        afd.alphabet = afnd.alphabet
+        afd.states = [afd.start_state]
+
+        queue = deque([afd.start_state])
+
+        while queue:
+            current_state = queue.popleft()
+
+            for component in current_state.components:
+                if component in afnd.accept_states:
+                    afd.accept_states.append(State(current_state))
+
+            for symbol in afnd.alphabet:
+                destination = Convert.transition(afnd, current_state, symbol)
+                destination = Convert.epsilon_closure(afnd, destination)
+
+                afd.transition_function.append([[current_state, symbol], destination])
+
+                if destination not in afd.states:
+                    queue.append(destination)
+                    afd.states.append(destination)
+
+        return afd
+
     @staticmethod
-    def convert_AFND_AFD(automaton: AFND) -> AFD:
-        states_without_q = [state.replace('q', '') for state in automaton.states]
+    def epsilon_closure(afnd: AFND, state):
+        '''
+        Verifico se em algum momento meu estado que estou analisando possui EPLSON
+        Se sim, vou pegar todas os todos estados que possuem EPLSON em sequência
+        Vou Colocar em uma lista todos os estados
+        '''
+        if not isinstance(state, State):
+            state = State(state)
+        closure = state.copy()
 
-        states_without_q_str = ''.join(states_without_q)
-        all_states = all_subsets(states_without_q_str)[1:]
-        all_states = [f'q{state}' for state in all_states]
+        for component in state.components:
+            for current_origin, destination in afnd.transition_function:
+                origin, symbol = current_origin
+                if origin == component and symbol == EPSILON_SYMBOL:
+                    closure += Convert.epsilon_closure(afnd, destination)
 
-        new_transition_fuction_list = []
-        for collumn_state in all_states:
-            collumn_state_unique_list = [f'q{s}' for s in collumn_state[1:]]
-            
-            if len(collumn_state_unique_list) == 1:
-                for state in collumn_state_unique_list:
-                    for symbol in automaton.alphabet:
-                        current_cell = []
-                        for original_state in automaton.transition_function:            
-                            if [state, symbol] == original_state[0]:
-                                current_cell.append([[state, symbol], original_state[1]])
-                    
-                        if len(current_cell) == 0:
-                            continue
+        return closure
 
-                        sorted_transition = sorted(list(set([int(i[1].replace('q','')) for i in current_cell])))
-                        str_transition = [str(i) for i in sorted_transition]
-                        new_state = 'q' + ''.join(str_transition)
-                        new_trasition = [[collumn_state, symbol], new_state]
-                        new_transition_fuction_list.append(new_trasition)
-        
-            elif len(collumn_state_unique_list) >= 1:
-                for symbol in automaton.alphabet:
-                    current_cell = []
-                    for state in collumn_state_unique_list:
-                        for original_state in automaton.transition_function:            
-                            if [state, symbol] == original_state[0]:
-                                current_cell.append(original_state)
-                    
-                    if len(current_cell) == 0:
-                        continue
+    @staticmethod
+    def transition(afnd, origin, symbol):
+        '''
+        Meu estado atutal lendo symbol, vai para onde?
+        Se não for para lugar algum, deve ir para VOID
+        Retorna para one vai
+        '''
+        if not isinstance(origin, State):
+            origin = State(origin)
 
-                    sorted_transition = sorted(list(set([int(i[1].replace('q','')) for i in current_cell])))
-                    str_transition = [str(i) for i in sorted_transition]
-                    new_state = 'q' + ''.join(str_transition)
-                    new_trasition = [[collumn_state, symbol], new_state]
-                    new_transition_fuction_list.append(new_trasition)
+        destination = State([])
 
-        new_transition_fuction_list = remove_unreachable_states(new_transition_fuction_list, 
-                                                                automaton.start_state)
+        for component in origin.components:
+            for (trans_origin, trans_dest) in afnd.transition_function:
+                trans_origin, trans_symbol = trans_origin 
+                if trans_origin == component and trans_symbol == symbol:
+                    destination += State(trans_dest)
 
-        states_set = {state[1] for state in new_transition_fuction_list}
-        states_set.add(automaton.start_state)
-        AFD_states = list(states_set)
+        if not destination:
+            return State("VOID")
 
-        number_accept_state = automaton.accept_states[0][1]
-        AFD_accept_states = [state for state in AFD_states if number_accept_state in state]
+        return destination
 
-        return AFD(states=AFD_states,
-        alphabet=automaton.alphabet,
-        transition_function=new_transition_fuction_list,
-        start_state=automaton.start_state,
-        accept_states=AFD_accept_states)
-
+    def to_string(afnd):
+        return (
+            f"Q = {afnd.states}\n"
+            f"Sigma = {afnd.alphabet}\n"
+            f"delta = {Convert.transitions}\n"
+            f"q0 = {afnd.start_state}\n"
+            f"F = {afnd.accept_states}\n"
+        )

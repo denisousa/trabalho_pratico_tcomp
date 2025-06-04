@@ -1,0 +1,1 @@
+vou olhar somente para o caso q,1 -> a | q,1 -> b | Se houver mais de um caso assim, eu desconsidero
