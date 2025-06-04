@@ -1,5 +1,7 @@
 from AFD import AFD
 
+
+
 class CLI_Printer:
     @staticmethod
     def print_result(w: str, automaton: AFD):
@@ -26,3 +28,33 @@ class CLI_Printer:
         Arquivos gerados: AFN.txt, AFD.txt, REV.txt, COMP.txt
         '''
         print(complete_result)
+
+    @staticmethod
+    def print_word_steps(w: str, automaton: AFD, valid: bool):
+        result = 'Aceita'
+        for i in range(len(w)):
+            symbol = w[i]
+            if i == 0:
+                state = automaton.start_state
+
+            destination = None
+            for t in automaton.transition_function:
+                if t[0][0] == set('@') or t[1] == set('@'):
+                    continue
+
+                if [state, symbol] == t[0]:
+                    destination = t[1]
+                    break
+
+            if not destination:
+                result = 'Rejeita'
+                break
+
+            if i == len(w) - 1 and destination not in automaton.accept_states:
+                result = 'Rejeita'
+
+            state = t[1] # newt state
+
+        complete_result = f'''Cadeia: {w}\nResultado: {result}'''
+        print(complete_result)
+

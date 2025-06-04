@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Dict, Tuple, Union, List
+from typing import List, Dict, Tuple, Union, Set
 from AF import AF
 from AFD import AFD
 from itertools import chain, combinations
@@ -12,7 +12,7 @@ EPSILON_SYMBOL = 'ε'
 class AFND(AF):
     def __init__(self,
                  states: List[str] = [],
-                 alphabet: List[str] = [],
+                 alphabet: Set[str] = [],
                  transition_function: List[Tuple[Tuple[str,str], str]] = [],
                  start_state: str = '',
                  accept_states: List[str] = []):

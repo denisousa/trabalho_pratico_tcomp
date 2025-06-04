@@ -1,0 +1,3 @@
+EPSILON_STRING = 'ε'
+FINAL_STATE = '$'
+VOID_STATE = '_'

@@ -7,13 +7,6 @@ import re
 
 class GrammarLoader:
     @staticmethod
-    def parse_production(rule: str) -> Tuple[str, List[str]]:
-        lhs, rhs = rule.split("->")
-        lhs = lhs.strip()
-        rhs = rhs.strip()
-        return [lhs, list(rhs)]
-
-    @staticmethod
     def extract_items(item):
         if item.startswith('{') and item.endswith('}'):
             return re.findall(r'[^,\s{}]+', item)
@@ -24,19 +17,6 @@ class GrammarLoader:
         with open(file_path, 'r', encoding='utf-8') as f:
             lines = [line.strip() for line in f.readlines() if line.strip()]
 
-        only_symbols = lines[0].replace('# Gramática: G =', '')
-        match = re.search(r"\{\s*([^{}]+?)\s*\}", only_symbols)
-
-        if match:
-            symbols = [s.strip() for s in match.group(1).split(',')]
-
-        grammar_file_txt = open(file_path, 'r', encoding='utf-8').read()
-        print('LEGEND:\n')
-        for i, original_symbol in enumerate(symbols):
-            grammar_file_txt = grammar_file_txt.replace(original_symbol, f'q{i}')
-            print(f'{original_symbol} => q{i}')
-
-        lines = [line.strip() for line in grammar_file_txt.split('\n') if line.strip()]
         grammar_symbols = lines[0].replace('# Gramática: G =', '')
 
         grammar = re.findall(r'({[^}]+}|[^,()\s]+)', grammar_symbols)
@@ -52,10 +32,8 @@ class GrammarLoader:
             else:
                 productions.append([non_terminal,[symbol]])
 
-        grammar[0].append(f'q{len(grammar[0])}')
+        grammar[0].append('$')
         grammar[2] = productions
-
-        print(grammar[0])
 
         return GLUD(non_terminals=grammar[0],
                     terminals=grammar[1],
@@ -139,63 +117,17 @@ class AutomatonLoader:
         return automaton
 
     @staticmethod
-    def write_AFND(automton: AFND, filename: str) -> None:
-        if 'ε' in automton.alphabet:
-            automton.alphabet.remove('ε')
-        states_text = ', '.join(automton.states)
-        alphabet_text = ', '.join(automton.alphabet)
-        accept_states_text = ', '.join(automton.accept_states)
+    def write_AF(automaton: AFND, filename: str = None, description: str = "") -> None:
+        states_text = ', '.join([str(s) for s in automaton.states])
+        alphabet_text = ', '.join(str(x) for x in automaton.alphabet)
+        accept_states_text = ', '.join([str(s) for s in automaton.accept_states])
+        start_state_text = "{'" + ', '.join([str(s) for s in automaton.start_state]) + "'}"
         
-        transition_function = [f'{tf[0][0]}, {tf[0][1]} -> {tf[1]}' for tf in automton.transition_function]
+        transition_function = [f'{tf[0][0]}, {tf[0][1]} -> {tf[1]}' for tf in automaton.transition_function]
         transition_function_text = '\n '.join(transition_function)
 
         text = f'''
-        # AFN
-        Q: {states_text}  
-        Σ: {alphabet_text}  
-        δ:  
-        {transition_function_text}  
-        {automton.start_state}: inicial  
-        F: {accept_states_text}
-        '''
-        text = '\n'.join([line.strip() for line in text.splitlines()])
-
-        open(filename, 'w').write(text)
-        print('AFND:' , text, '\n\n')
-
-    @staticmethod
-    def format_state(state):
-        digits = sorted(set(state.replace('q', '')))
-        return '{' + ', '.join(f'q{d}' for d in digits) + '}'
-    
-    @staticmethod
-    def replace_states(text):
-        return re.sub(r'q[0-9]+', lambda m: AutomatonLoader.format_state(m.group()), text)
-
-    @staticmethod
-    def normalize_states(states):
-        states_list =  [
-            '{' + ', '.join(f'q{char}' for char in sorted(state[1:])) + '}'
-            for state in states
-        ][::-1]
-
-        return ', '.join(states_list);
-
-    @staticmethod
-    def write_AFD(automton: AFD, filename: str) -> None:
-        if 'ε' in automton.alphabet:
-            automton.alphabet.remove('ε')
-
-        states_text = AutomatonLoader.normalize_states(automton.states)
-        alphabet_text = ', '.join(automton.alphabet)
-        accept_states_text = AutomatonLoader.normalize_states(automton.accept_states)
-        start_state_text = '{' + automton.start_state + '}'
-        
-        transition_function = [AutomatonLoader.replace_states(f"{tf[0][0]}, {tf[0][1]} -> {tf[1]}") for tf in automton.transition_function]
-        transition_function_text = '\n '.join(transition_function)
-
-        text = f'''
-        # AFD
+        {description}
         Q: {states_text}  
         Σ: {alphabet_text}  
         δ:  
@@ -205,6 +137,6 @@ class AutomatonLoader:
         '''
         text = '\n'.join([line.strip() for line in text.splitlines()])
 
-        open(filename, 'w').write(text)
-        print('AFD:' , text, '\n\n')
-
+        print(text)
+        if filename:
+            open(filename, 'w').write(text)
