@@ -9,6 +9,17 @@ EPSILON_SYMBOL = 'ε'
 
 class Convert:
     @staticmethod
+    def unique_item_list(list_item):
+        new_list = []
+        for item in list_item:
+            if item in new_list:
+                continue
+            
+            new_list.append(item)
+
+        return new_list
+
+    @staticmethod
     def convert_GLUD_AFND(grammar: GLUD) -> AFND:
         transition_function = []
         final_state = '$'
@@ -62,6 +73,8 @@ class Convert:
                     afd.states.append(destination)
 
         afd.transition_function.sort(key=lambda item: len(item[0][0]))
+        afd.transition_function = Convert.unique_item_list(afd.transition_function)
+        afd.accept_states = Convert.unique_item_list(afd.accept_states)
         return afd
 
     @staticmethod

@@ -8,12 +8,22 @@ def check_word(word: str, grammar: GLUD, valid: bool):
     print()
     afnd = Convert.convert_GLUD_AFND(grammar)
     afd = Convert.convert_AFND_AFD(afnd)
+    rev = afd.apply_reverse()
+    rev_afd = Convert.convert_AFND_AFD(rev)
 
     CLI_Printer.print_word_steps(word, afd, valid)
-
-    rev_afd = afd.apply_reverse()
     CLI_Printer.print_word_steps(word[::-1], rev_afd, valid)
 
+def print_conversions(grammar: GLUD):
+    afnd = Convert.convert_GLUD_AFND(grammar)
+    afd = Convert.convert_AFND_AFD(afnd)
+    rev = afd.apply_reverse()
+    rev_afd = Convert.convert_AFND_AFD(rev)
+
+    AutomatonLoader.write_AF(afnd)
+    AutomatonLoader.write_AF(afd)
+    AutomatonLoader.write_AF(rev)
+    AutomatonLoader.write_AF(rev_afd)
 
 g1 = GLUD(non_terminals=['S', 'A'],
          terminals=['a', 'b'],
@@ -27,16 +37,17 @@ g1 = GLUD(non_terminals=['S', 'A'],
 
 
 if __name__ in '__main__':
+    print_conversions(g1)
     check_word("", g1, True)
-    check_word("a", g1, False)
-    check_word("b", g1, False)
-    check_word("ab", g1, True)
-    check_word("ba", g1, False)
-    check_word("aab", g1, True)
-    check_word("aabb", g1, False)
-    check_word("aaaaaaaab", g1, True)
-    check_word("aaaaaaaaaabb", g1, False)
-    check_word("aaaaaabaaab", g1, False)
+    # check_word("a", g1, False)
+    # check_word("b", g1, False)
+    # check_word("ab", g1, True)
+    # check_word("ba", g1, False)
+    # check_word("aab", g1, True)
+    # check_word("aabb", g1, False)
+    # check_word("aaaaaaaab", g1, True)
+    # check_word("aaaaaaaaaabb", g1, False)
+    # check_word("aaaaaabaaab", g1, False)
 
 
 

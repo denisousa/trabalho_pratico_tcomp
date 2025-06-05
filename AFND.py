@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Dict, Tuple, Union, Set
 from AF import AF
-from AFD import AFD
 from itertools import chain, combinations
 from collections import deque
 from state import State
