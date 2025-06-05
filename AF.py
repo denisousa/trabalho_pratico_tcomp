@@ -3,7 +3,7 @@ from typing import Set, Dict, Tuple, Union, List
 
 class AF(ABC):
     def __init__(self,
-                 states: Set[str],
+                 states: List[Set[str]],
                  alphabet: Set[str],
                  transition_function: List[Tuple[str, List[str]]],
                  start_state: str,

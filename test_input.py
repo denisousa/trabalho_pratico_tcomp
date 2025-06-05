@@ -19,11 +19,18 @@ def print_conversions(grammar: GLUD):
     afd = Convert.convert_AFND_AFD(afnd)
     rev = afd.apply_reverse()
     rev_afd = Convert.convert_AFND_AFD(rev)
+    comp = afd.apply_complement()
 
+    print('AFND')
     AutomatonLoader.write_AF(afnd)
+    print('AFD')
     AutomatonLoader.write_AF(afd)
+    print('REV')
     AutomatonLoader.write_AF(rev)
+    print('REV -> AFD')
     AutomatonLoader.write_AF(rev_afd)
+    print('COMP')
+    AutomatonLoader.write_AF(comp)
 
 g1 = GLUD(non_terminals=['S', 'A'],
          terminals=['a', 'b'],
@@ -39,92 +46,13 @@ g1 = GLUD(non_terminals=['S', 'A'],
 if __name__ in '__main__':
     print_conversions(g1)
     check_word("", g1, True)
-    # check_word("a", g1, False)
-    # check_word("b", g1, False)
-    # check_word("ab", g1, True)
-    # check_word("ba", g1, False)
-    # check_word("aab", g1, True)
-    # check_word("aabb", g1, False)
-    # check_word("aaaaaaaab", g1, True)
-    # check_word("aaaaaaaaaabb", g1, False)
-    # check_word("aaaaaabaaab", g1, False)
+    check_word("a", g1, False)
+    check_word("b", g1, False)
+    check_word("ab", g1, True)
+    check_word("ba", g1, False)
+    check_word("aab", g1, True)
+    check_word("aabb", g1, False)
+    check_word("aaaaaaaab", g1, True)
+    check_word("aaaaaaaaaabb", g1, False)
+    check_word("aaaaaabaaab", g1, False)
 
-
-
-# check_word('aa', g, True)
-
-# g.non_terminals = {'S', 'C'}
-# g.terminals = {'a', 'b', 'c'}
-# g.start_symbol = 'S'
-# g.productions = [
-#     ('S', ['a', 'A']),
-#     ('S', EPSILON_STRING),   # ε-produção
-#     ('A', ['a', 'A']),
-#     ('A', ['b'])
-# ]
-
-
-
-# COMP_1 = AFD_1.apply_complement()
-# REV_1 = AFD_1.apply_reverse()
-
-
-
-# Test_Input{
-#     {"", true},
-#     {"a", false},
-#     {"b", false},
-#     {"ab", true},
-#     {"ba", false},
-#     {"aab", true},
-#     {"aabb", false},
-#     {"aaaaaaaab", true},
-#     {"aaaaaaaaaabb", false},
-#     {"aaaaaabaaab", false},
-# }},
-
-# Grammar_Test{// Accept strings with any number of 'ab' repetitions
-#                 GLUD(
-#                     {'S', 'A'}, // Variables
-#                     {'a', 'b'}, // Terminals
-#                     {           // Productions
-#                     {'S', {"aA", EPSILON_STRING}},
-#                     {'A', {"bS"}}},
-#                     'S' // Start symbol
-#                     ),
-#                 Test_Input{
-#                     {"", true},
-#                     {"a", false},
-#                     {"b", false},
-#                     {"ab", true},
-#                     {"ba", false},
-#                     {"aab", false},
-#                     {"aabb", false},
-#                     {"aaaaaaaab", false},
-#                     {"aaaaaaaaaabb", false},
-#                     {"aaaaaabaaab", false},
-#                     {"abab", true},
-#                     {"ababababab", true},
-#                     {"abababaabab", false},
-#                     {"abababbabab", false},
-#                     {"ababababa", false},
-#                     {"bababab", false},
-#                 }},
-
-# Grammar_Test{// Accept strings with any number of 'a' followed by only one 'b'
-#                 GLUD(
-#                     {'S', 'A'},
-#                     {'a', 'b'},
-#                     {{'S', {"aS", "b"}}},
-#                     'S'),
-#                 Test_Input{
-#                     {"", false},
-#                     {"b", true},
-#                     {"a", false},
-#                     {"ab", true},
-#                     {"aab", true},
-#                     {"aaab", true},
-#                     {"ba", false},
-#                     {"bbb", false},
-#                     {"aaabb", false},
-#                 }},

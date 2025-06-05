@@ -32,7 +32,7 @@ class GrammarLoader:
             else:
                 productions.append([non_terminal,[symbol]])
 
-        grammar[0].append('$')
+        grammar[0].append('G')
         grammar[2] = productions
 
         return GLUD(non_terminals=grammar[0],
@@ -120,8 +120,8 @@ class AutomatonLoader:
     def write_AF(automaton: AFND, filename: str = None, description: str = "") -> None:
         states_text = ', '.join([str(s) for s in automaton.states])
         alphabet_text = ', '.join(str(x) for x in automaton.alphabet)
-        accept_states_text = ', '.join([str(s) for s in automaton.accept_states])
-        start_state_text = "{'" + ', '.join([str(s) for s in automaton.start_state]) + "'}"
+        accept_states_text = "{" +  ', '.join([str(s) for s in automaton.accept_states]) + "}" 
+        start_state_text = "{" + ', '.join([str(s) for s in automaton.start_state]) + "}"
         
         transition_function = [f'{tf[0][0]}, {tf[0][1]} -> {tf[1]}' for tf in automaton.transition_function]
         transition_function_text = '\n '.join(transition_function)

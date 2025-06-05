@@ -7,11 +7,13 @@ Dúvida:
 convert.py eu posso fazer uma variável gerar mais de um terminal?
 
 
-Produção:
-{ 'S': ['','',''] }
+Estado gerado G -> AFN
+G
 
-['S', ['', '','',]]
+Estado vázio gerado de AFN -> AFD
+@
 
-Função de Transição:
+Estado gerado pelo reverso
+R
 
-[['',''], '']
+Se já houver um @ no AFN, eu gero $

@@ -4,6 +4,7 @@ from AFND import AFND
 from itertools import chain, combinations
 from collections import deque
 from state import State
+from AF import AF
 EPSILON_SYMBOL = 'ε'
 
 
@@ -22,7 +23,7 @@ class Convert:
     @staticmethod
     def convert_GLUD_AFND(grammar: GLUD) -> AFND:
         transition_function = []
-        final_state = '$'
+        final_state = 'G'
         for production in grammar.productions:
             state, chain = production
             if chain[0] == 'ε' and len(chain) == 1:
@@ -38,8 +39,8 @@ class Convert:
                 transition_function.append([[set([state]), chain[0]], set([chain[1]])])
 
         
-        states = [*grammar.non_terminals, '$']
-        return AFND(states=states,
+        states = [*grammar.non_terminals, final_state]
+        return AFND(states=[set(s) for s in states],
              alphabet=set([t for t in grammar.terminals]),
              transition_function=transition_function,
              start_state=set(grammar.start_symbol),
@@ -57,8 +58,8 @@ class Convert:
         while queue:
             current_state = queue.popleft()
 
-            for component in current_state:
-                component = set(component)
+            for component in next(iter(current_state)):
+                component = set([component])
                 if component in afnd.accept_states:
                     afd.accept_states.append(set(current_state))
 
@@ -75,6 +76,14 @@ class Convert:
         afd.transition_function.sort(key=lambda item: len(item[0][0]))
         afd.transition_function = Convert.unique_item_list(afd.transition_function)
         afd.accept_states = Convert.unique_item_list(afd.accept_states)
+
+        new_transitions = []
+        for t in afd.transition_function:
+            if t[0][0] in afd.states:
+                  new_transitions.append(t)
+
+        afd.transition_function = new_transitions
+        # Convert.rename_state(afd)
         return afd
 
     @staticmethod
@@ -88,14 +97,14 @@ class Convert:
             state = set([state])
         closure = state.copy()
 
-        for component in state:
-            component = set(component)
+        for component in next(iter(state)):
+            component = set([component])
             for current_origin, destination in afnd.transition_function:
                 origin, symbol = current_origin
                 if origin == component and symbol == EPSILON_SYMBOL:
                     closure.update(Convert.epsilon_closure(afnd, destination))
 
-        return closure
+        return {''.join(sorted(closure))}
 
     @staticmethod
     def transition(afnd, origin, symbol):
@@ -109,16 +118,20 @@ class Convert:
 
         destination = set()
 
-        for component in origin:
-            component = set(component)
+        for component in next(iter(origin)):
+            component = set([component])
             for (trans_origin, trans_dest) in afnd.transition_function:
                 trans_origin, trans_symbol = trans_origin 
                 if trans_origin == component and trans_symbol == symbol:
                     destination.update(set(trans_dest))
 
         if not destination:
+            for component in next(iter(afnd.states)):
+                component = set([component])
+                if "@" in list(component):
+                    return set("$")
             return set("@")
 
-        return destination
+        return {''.join(sorted(destination))}
 
 
