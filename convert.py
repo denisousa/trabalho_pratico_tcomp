@@ -2,12 +2,12 @@ from AF import AF
 from GLUD import GLUD
 from collections import deque
 from global_variable import EPSILON_SYMBOL, GRAMMAR_FINAL_STATE, NULL_STATE
-from typing import List, Set, Any
+from typing import Set
 
 
 class Convert:
     @staticmethod
-    def unique_item_list(list_item: List[Any]) -> List[Any]:
+    def unique_item_list(list_item: list) -> list:
         """
         Remove itens duplicados de uma lista mantendo a ordem original.
         Args:
@@ -73,6 +73,7 @@ class Convert:
         queue = deque([afd.start_state])
 
         while queue:
+
             current_state = queue.popleft()
 
             for component in current_state:
@@ -91,8 +92,8 @@ class Convert:
                     afd.states.append(destination)
 
         afd.transition_function.sort(key=lambda item: len(item[0][0]))
-        # afd.transition_function = Convert.unique_item_list(afd.transition_function)
-        # afd.accept_states = Convert.unique_item_list(afd.accept_states)
+        afd.transition_function = Convert.unique_item_list(afd.transition_function)
+        afd.accept_states = Convert.unique_item_list(afd.accept_states)
 
         new_transitions = []
         for t in afd.transition_function:

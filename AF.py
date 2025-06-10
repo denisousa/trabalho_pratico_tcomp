@@ -1,6 +1,6 @@
-from global_variable import GRAMMAR_FINAL_STATE, REVERSE_FINAL_STATE, EPSILON_SYMBOL, NULL_STATE
-from abc import ABC, abstractmethod
-from typing import Set, Dict, Tuple, Union, List
+from global_variable import REVERSE_FINAL_STATE, EPSILON_SYMBOL, NULL_STATE
+from abc import ABC
+from typing import Set, Tuple, List
 import copy
 
 class AF(ABC):
@@ -45,6 +45,10 @@ class AF(ABC):
 
 
     def apply_complement(self) -> 'AF':
+        check, message = self.check_is_deterministic()
+        if not check:
+            raise ValueError(message)
+        
         new_accept_states = [state for state in self.states if state not in self.accept_states]
 
         return AF(states=self.states,
@@ -54,6 +58,10 @@ class AF(ABC):
         accept_states=new_accept_states)
     
     def apply_reverse(self) -> 'AF':
+        check, message = self.check_is_deterministic()
+        if not check:
+            raise ValueError(message)
+        
         new_state = set([REVERSE_FINAL_STATE])
         automaton_rev = copy.deepcopy(self)
 

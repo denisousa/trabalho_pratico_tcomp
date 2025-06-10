@@ -9,13 +9,15 @@ from global_variable import GRAMMAR_FINAL_STATE
 
 def check_word(word: str, grammar: GLUD, valid: bool):
     print()
-    afnd = Convert.convert_GLUD_AFND(grammar)
+    if grammar:
+        afnd = Convert.convert_GLUD_AFND(grammar)
+    
     afd = Convert.convert_AFND_AFD(afnd)
 
     CLI_Printer.print_word_steps(word, afd, valid)
 
 
-def print_conversions(grammar: GLUD):
+def print_grammar_conversions(grammar: GLUD):
     afnd = Convert.convert_GLUD_AFND(grammar)
     afd = Convert.convert_AFND_AFD(afnd)
     rev = afd.apply_reverse()
@@ -31,7 +33,6 @@ def print_conversions(grammar: GLUD):
     AutomatonLoader.write_AF(rev)
     print("COMP")
     AutomatonLoader.write_AF(comp)
-
 
 g1 = GLUD(
     non_terminals=["S", "A"],
@@ -59,16 +60,15 @@ af1 = AF(
     accept_states=[set(GRAMMAR_FINAL_STATE)],
 )
 
-
 if __name__ in "__main__":
-    print_conversions(g1)
-    check_word("", g1, True)
-    check_word("a", g1, False)
-    check_word("b", g1, False)
-    check_word("ab", g1, True)
-    check_word("ba", g1, False)
-    check_word("aab", g1, True)
-    check_word("aabb", g1, False)
-    check_word("aaaaaaaab", g1, True)
-    check_word("aaaaaaaaaabb", g1, False)
-    check_word("aaaaaabaaab", g1, False)
+    print_grammar_conversions(g1)
+    check_word("", grammar=g1, valid=True)
+    check_word("a", grammar=g1, valid=False)
+    check_word("b", grammar=g1, valid=False)
+    check_word("ab", grammar=g1, valid=True)
+    check_word("ba", grammar=g1, valid=False)
+    check_word("aab", grammar=g1, valid=True)
+    check_word("aabb", grammar=g1, valid=False)
+    check_word("aaaaaaaab", grammar=g1, valid=True)
+    check_word("aaaaaaaaaabb", grammar=g1, valid=False)
+    check_word("aaaaaabaaab", grammar=g1, valid=False)

@@ -20,10 +20,10 @@ if __name__ == '__main__':
     AutomatonLoader.write_AF(AFD_1, 'AFD.txt', '#AFD - Deterministc Automaton')
     check, message = AFD_1.check_is_deterministic()
     print(message)
-    AutomatonLoader.write_AF(COMP_1, 'COMP.txt', '#AFD - Complement')
+    AutomatonLoader.write_AF(COMP_1, 'COMP.txt', '#AFD -> Complement')
     check, message = COMP_1.check_is_deterministic()
     print(message)
-    AutomatonLoader.write_AF(REV_1, 'REV.txt', '#AFD - Reverse')
+    AutomatonLoader.write_AF(REV_1, 'REV.txt', '#AFD -> Reverse')
     check, message = REV_1.check_is_deterministic()
     print(message)
 
