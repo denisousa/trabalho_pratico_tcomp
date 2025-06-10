@@ -1,16 +1,20 @@
-from AFD import AFD
-from GLUD import GLUD
-from AFND import AFND
-from itertools import chain, combinations
-from collections import deque
-from state import State
 from AF import AF
-EPSILON_SYMBOL = 'ε'
+from GLUD import GLUD
+from collections import deque
+from global_variable import EPSILON_SYMBOL, GRAMMAR_FINAL_STATE, NULL_STATE
+from typing import List, Set, Any
 
 
 class Convert:
     @staticmethod
-    def unique_item_list(list_item):
+    def unique_item_list(list_item: List[Any]) -> List[Any]:
+        """
+        Remove itens duplicados de uma lista mantendo a ordem original.
+        Args:
+            list_item: Lista que terá seus itens duplicados removidos
+        Returns:
+            Lista sem itens duplicados
+        """
         new_list = []
         for item in list_item:
             if item in new_list:
@@ -21,33 +25,46 @@ class Convert:
         return new_list
 
     @staticmethod
-    def convert_GLUD_AFND(grammar: GLUD) -> AFND:
+    def convert_GLUD_AFND(grammar: GLUD) -> AF:
+        """
+        Converte uma Gramática Linear Unitária à Direita (GLUD) em um Autômato Finito Não Determinístico (AFND).
+        Args:
+            grammar: Gramática GLUD a ser convertida
+        Returns:
+            AFND equivalente à gramática
+        """
         transition_function = []
-        final_state = 'G'
         for production in grammar.productions:
             state, chain = production
             if chain[0] == 'ε' and len(chain) == 1:
-                transition_function.append([[set([state]), chain[0]], set([final_state])])
+                transition_function.append([[set(state), chain[0]], set(GRAMMAR_FINAL_STATE)])
 
             elif not chain[0] and len(chain) == 1: # Poso ter comente 1? Sim pq é GLUD
-                transition_function.append([[set([state]), chain[0]], set([final_state])])
+                transition_function.append([[set(state), chain[0]], set(GRAMMAR_FINAL_STATE)])
 
             elif chain[0] and len(chain) == 1: 
-                transition_function.append([[set([state]), chain[0]], set([final_state])])
+                transition_function.append([[set(state), chain[0]], set(GRAMMAR_FINAL_STATE)])
 
             else:
-                transition_function.append([[set([state]), chain[0]], set([chain[1]])])
+                transition_function.append([[set(state), chain[0]], set(chain[1])])
 
         
-        states = [*grammar.non_terminals, final_state]
-        return AFND(states=[set(s) for s in states],
+        states = [*grammar.non_terminals, GRAMMAR_FINAL_STATE]
+        return AF(states=[set(s) for s in states],
              alphabet=set([t for t in grammar.terminals]),
              transition_function=transition_function,
              start_state=set(grammar.start_symbol),
-             accept_states=[set([final_state])]) 
+             accept_states=[set([GRAMMAR_FINAL_STATE])]) 
     
-    def convert_AFND_AFD(afnd):
-        afd = AFD()
+    def convert_AFND_AFD(afnd: AF) -> AF:
+        """
+        Converte um Autômato Finito Não Determinístico (AFND) em um Autômato Finito Determinístico (AFD).
+        Args:
+            afnd: AFND a ser convertido
+        Returns:
+            AFD equivalente ao AFND
+        """
+        afd = AF()
 
         afd.start_state = Convert.epsilon_closure(afnd, set(afnd.start_state))
         afd.alphabet = afnd.alphabet
@@ -58,10 +75,10 @@ class Convert:
         while queue:
             current_state = queue.popleft()
 
-            for component in next(iter(current_state)):
-                component = set([component])
+            for component in current_state:
+                component = set(component)
                 if component in afnd.accept_states:
-                    afd.accept_states.append(set(current_state))
+                    afd.accept_states.append(current_state)
 
             for symbol in afnd.alphabet:
                 destination = Convert.transition(afnd, current_state, symbol)
@@ -74,8 +91,8 @@ class Convert:
                     afd.states.append(destination)
 
         afd.transition_function.sort(key=lambda item: len(item[0][0]))
-        afd.transition_function = Convert.unique_item_list(afd.transition_function)
-        afd.accept_states = Convert.unique_item_list(afd.accept_states)
+        # afd.transition_function = Convert.unique_item_list(afd.transition_function)
+        # afd.accept_states = Convert.unique_item_list(afd.accept_states)
 
         new_transitions = []
         for t in afd.transition_function:
@@ -83,42 +100,49 @@ class Convert:
                   new_transitions.append(t)
 
         afd.transition_function = new_transitions
-        # Convert.rename_state(afd)
         return afd
 
-    @staticmethod
-    def epsilon_closure(afnd: AFND, state):
-        '''
-        Verifico se em algum momento meu estado que estou analisando possui EPLSON
-        Se sim, vou pegar todas os todos estados que possuem EPLSON em sequência
-        Vou Colocar em uma lista todos os estados
-        '''
+    def epsilon_closure(afnd: AF, state: Set[str]) -> Set[str]:
+        """
+        Calcula o fecho-ε de um estado no AFND.
+        O fecho-ε é o conjunto de todos os estados alcançáveis a partir do estado atual
+        usando apenas transições ε.
+        Args:
+            afnd: AFND onde o fecho-ε será calculado
+            state: Estado inicial para calcular o fecho-ε
+        Returns:
+            Conjunto de estados alcançáveis via transições ε
+        """
         if not isinstance(state, set):
             state = set([state])
         closure = state.copy()
 
-        for component in next(iter(state)):
+        for component in state:
             component = set([component])
             for current_origin, destination in afnd.transition_function:
                 origin, symbol = current_origin
                 if origin == component and symbol == EPSILON_SYMBOL:
                     closure.update(Convert.epsilon_closure(afnd, destination))
 
-        return {''.join(sorted(closure))}
+        return closure
 
-    @staticmethod
-    def transition(afnd, origin, symbol):
-        '''
-        Meu estado atutal lendo symbol, vai para onde?
-        Se não for para lugar algum, deve ir para VOID
-        Retorna para one vai
-        '''
+    def transition(afnd: AF, origin: Set[str], symbol: str) -> Set[str]:
+        """
+        Calcula o conjunto de estados de destino a partir de um estado de origem
+        e um símbolo de entrada no AFND.
+        Args:
+            afnd: AFND onde a transição será calculada
+            origin: Estado de origem
+            symbol: Símbolo de entrada
+        Returns:
+            Conjunto de estados de destino (ou {NULL_STATE} se não houver transição)
+        """
         if not isinstance(origin, set):
-            origin = set([origin])
+            origin = set(origin)
 
         destination = set()
 
-        for component in next(iter(origin)):
+        for component in origin:
             component = set([component])
             for (trans_origin, trans_dest) in afnd.transition_function:
                 trans_origin, trans_symbol = trans_origin 
@@ -126,12 +150,8 @@ class Convert:
                     destination.update(set(trans_dest))
 
         if not destination:
-            for component in next(iter(afnd.states)):
-                component = set([component])
-                if "@" in list(component):
-                    return set("$")
-            return set("@")
+            return set(NULL_STATE)
 
-        return {''.join(sorted(destination))}
+        return destination
 
 

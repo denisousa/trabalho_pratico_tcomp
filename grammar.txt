@@ -1,6 +1,6 @@
-# Gramática: G = ({q0, S}, {a, b}, P, S)
+# Gramática: G = ({A, S}, {a, b}, P, S)
 
-q0 -> aq0 
-q0 -> b  
-S -> aq0  
+A -> aA 
+A -> b  
+S -> aA  
 S -> ε

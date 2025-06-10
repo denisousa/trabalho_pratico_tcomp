@@ -1,7 +1,7 @@
 from typing import Tuple, List
 from GLUD import GLUD
-from AFND import AFND
-from AFD import AFD
+from AF import AF
+from global_variable import GRAMMAR_FINAL_STATE
 import re
 
 
@@ -32,7 +32,6 @@ class GrammarLoader:
             else:
                 productions.append([non_terminal,[symbol]])
 
-        grammar[0].append('G')
         grammar[2] = productions
 
         return GLUD(non_terminals=grammar[0],
@@ -41,10 +40,28 @@ class GrammarLoader:
                     start_symbol=grammar[3])
 
 
+    @staticmethod
+    def write_Grammar(grammar: GLUD, filename: str = None, description: str = "") -> None:
+        
+        productions_txt = '\n'.join([str(p) for p in grammar.productions])
+        text = f'''
+        {description}
+        G = ({grammar.non_terminals}, {grammar.terminals}, P, '{grammar.start_symbol}')
+
+        P:  
+        {productions_txt}
+        '''
+        text = '\n'.join([line.strip() for line in text.splitlines()])
+
+        print(text)
+        if filename:
+            open(filename, 'w').write(text)
+
+
 class AutomatonLoader:
     @staticmethod
-    def load_AFND_from_file(file_path: str) -> AFND:
-        automaton = AFND()
+    def load_AFND_from_file(file_path: str) -> AF:
+        automaton = AF()
         with open(file_path, 'r', encoding='utf-8') as f:
             lines = [line.strip() for line in f.readlines() if line.strip()]
 
@@ -86,8 +103,8 @@ class AutomatonLoader:
         return normalized
     
     @staticmethod
-    def load_AFD_from_file(file_path: str) -> AFD:
-        automaton = AFD()
+    def load_AFD_from_file(file_path: str) -> AF:
+        automaton = AF()
         with open(file_path, 'r', encoding='utf-8') as f:
             lines = [line.strip() for line in f.readlines() if line.strip()]
 
@@ -117,7 +134,7 @@ class AutomatonLoader:
         return automaton
 
     @staticmethod
-    def write_AF(automaton: AFND, filename: str = None, description: str = "") -> None:
+    def write_AF(automaton: AF, filename: str = None, description: str = "") -> None:
         states_text = ', '.join([str(s) for s in automaton.states])
         alphabet_text = ', '.join(str(x) for x in automaton.alphabet)
         accept_states_text = "{" +  ', '.join([str(s) for s in automaton.accept_states]) + "}" 
@@ -140,3 +157,5 @@ class AutomatonLoader:
         print(text)
         if filename:
             open(filename, 'w').write(text)
+
+

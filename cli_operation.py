@@ -1,10 +1,10 @@
-from AFD import AFD
-
+from AF import AF
+from global_variable import NULL_STATE
 
 
 class CLI_Printer:
     @staticmethod
-    def print_result(w: str, automaton: AFD):
+    def print_result(w: str, automaton: AF):
         result = 'Aceita'
         for i in range(len(w)):
             symbol = w[i]
@@ -30,7 +30,7 @@ class CLI_Printer:
         print(complete_result)
 
     @staticmethod
-    def print_word_steps(w: str, automaton: AFD, valid: bool):
+    def print_word_steps(w: str, automaton: AF, valid: bool):
         result = 'Aceita'
         for i in range(len(w)):
             symbol = w[i]
@@ -39,7 +39,7 @@ class CLI_Printer:
 
             destination = None
             for t in automaton.transition_function:
-                if t[0][0] == set('@') or t[1] == set('@'):
+                if t[0][0] == set(NULL_STATE) or t[1] == set(NULL_STATE):
                     continue
 
                 if [state, symbol] == t[0]:
@@ -58,3 +58,5 @@ class CLI_Printer:
         complete_result = f'''Cadeia: {w}\nResultado: {result}'''
         print(complete_result)
 
+        if (result == 'Aceita' and not valid) or (result == 'Rejeita' and valid):
+            print('Automato ou análise está errada!') 
