@@ -27,26 +27,26 @@ class Convert:
     @staticmethod
     def convert_GLUD_AFND(grammar: GLUD) -> AF:
         """
-        Converte uma Gramática Linear Unitária à Direita (GLUD) em um Autômato Finito Não Determinístico (AFND).
-        Args:
-            grammar: Gramática GLUD a ser convertida
-        Returns:
-            AFND equivalente à gramática
+        Para cada produção da gramática, irei verficar:
+        Se gera somente um símbolo vazio, adciiona uma transição para o estado final.
+        Se gera somente um terminal, adciiona uma transição para o estado final.
+        Se gera somente uma variável, adciiona uma transição com vazio para a variável gerada.
+        Se gera variável e terminal, adciiona uma transição com o terminal para a variável gerada.
         """
         transition_function = []
         for production in grammar.productions:
-            state, chain = production
-            if chain[0] == 'ε' and len(chain) == 1:
-                transition_function.append([[set(state), chain[0]], set(GRAMMAR_FINAL_STATE)])
+            variable, chain = production
+            if chain[0] == EPSILON_SYMBOL and len(chain) == 1:
+                transition_function.append([[set(variable), EPSILON_SYMBOL], set(GRAMMAR_FINAL_STATE)])
 
-            elif not chain[0] and len(chain) == 1: # Poso ter comente 1? Sim pq é GLUD
-                transition_function.append([[set(state), chain[0]], set(GRAMMAR_FINAL_STATE)])
+            elif chain[0].islower() and len(chain) == 1:
+                transition_function.append([[set(variable), chain[0]], set(GRAMMAR_FINAL_STATE)])
 
-            elif chain[0] and len(chain) == 1: 
-                transition_function.append([[set(state), chain[0]], set(GRAMMAR_FINAL_STATE)])
+            elif chain[0].isupper() and len(chain) == 1: 
+                transition_function.append([[set(variable), EPSILON_SYMBOL], set(chain[1])])
 
             else:
-                transition_function.append([[set(state), chain[0]], set(chain[1])])
+                transition_function.append([[set(variable), chain[0]], set(chain[1])])
 
         
         states = [*grammar.non_terminals, GRAMMAR_FINAL_STATE]
@@ -58,11 +58,9 @@ class Convert:
     
     def convert_AFND_AFD(afnd: AF) -> AF:
         """
-        Converte um Autômato Finito Não Determinístico (AFND) em um Autômato Finito Determinístico (AFD).
-        Args:
-            afnd: AFND a ser convertido
-        Returns:
-            AFD equivalente ao AFND
+        Essa função consiste em utilizar a função "epsilon_closure" para computar o fecho-ε de cada estado.
+        Essa função também utiliza a função "transition" para computar o próximo estado.
+        A cada iteração, irei adicionar os estados de destino a uma fila e adicionar os estados de destino a uma fila.
         """
         afd = AF()
 
@@ -105,17 +103,10 @@ class Convert:
 
     def epsilon_closure(afnd: AF, state: Set[str]) -> Set[str]:
         """
-        Calcula o fecho-ε de um estado no AFND.
-        O fecho-ε é o conjunto de todos os estados alcançáveis a partir do estado atual
-        usando apenas transições ε.
-        Args:
-            afnd: AFND onde o fecho-ε será calculado
-            state: Estado inicial para calcular o fecho-ε
-        Returns:
-            Conjunto de estados alcançáveis via transições ε
+        Irei procurar pelas transições vazias que estão saindo do meu estado.
+        Caso eu encontre uma transição vazia, irei chamar a função recursivamente.
+        A ideia é unir todos os estados alcançãveis pelo estado atual usando vazio.
         """
-        if not isinstance(state, set):
-            state = set([state])
         closure = state.copy()
 
         for component in state:
@@ -129,18 +120,14 @@ class Convert:
 
     def transition(afnd: AF, origin: Set[str], symbol: str) -> Set[str]:
         """
-        Calcula o conjunto de estados de destino a partir de um estado de origem
-        e um símbolo de entrada no AFND.
-        Args:
-            afnd: AFND onde a transição será calculada
-            origin: Estado de origem
-            symbol: Símbolo de entrada
-        Returns:
-            Conjunto de estados de destino (ou {NULL_STATE} se não houver transição)
-        """
-        if not isinstance(origin, set):
-            origin = set(origin)
+        Componente - Cada estdo individual da minha nova transição
 
+        Lógica:
+        Para cada componente irei procurar na AFND uma transição correspondente com o símbolo.
+        Isso é feito para criar um novo estado destino.
+        O estado destino será a união dos estados da AFND para o componente e o símbolo que passo como parâmetro.
+        Caso não exista esse estado destino, irei retornar o estado nulo.
+        """
         destination = set()
 
         for component in origin:
@@ -154,5 +141,4 @@ class Convert:
             return set(NULL_STATE)
 
         return destination
-
 
