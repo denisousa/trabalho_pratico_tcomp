@@ -18,30 +18,30 @@ class AF(ABC):
         self.transition_function = transition_function
 
     def check_is_deterministic(self) -> tuple[bool, str]:
-        # Check for epsilon transitions
+        # Verifica transições epsilon
         for transition in self.transition_function:
             if transition[0][1] == EPSILON_SYMBOL:
-                return False, "Epsilon transitions are not allowed"
+                return False, "Transições epsilon não são permitidas"
         
-        # Check for repeated transitions from same state with same input
+        # Verifica transições repetidas do mesmo estado com a mesma entrada
         seen_transitions = set()
         for transition in self.transition_function:
             state_input = (frozenset(transition[0][0]), transition[0][1])
             if state_input in seen_transitions:
-                return False, "Repeated transitions from same state with same input are not allowed"
+                return False, "Transições repetidas do mesmo estado com a mesma entrada não são permitidas"
             seen_transitions.add(state_input)
         
-        # Check if each state has exactly one transition for each symbol in alphabet
+        # Verifica se cada estado tem exatamente uma transição para cada símbolo no alfabeto
         for state in self.states:
             state_transitions = []
             for transition in self.transition_function:
-                if transition[0][0] == state:  # Check if transition is from current state
+                if transition[0][0] == state:  # Verifica se a transição é do estado atual
                     state_transitions.append(transition[0][1])
             
             if len(state_transitions) != len(self.alphabet):
-                return False, f"State {state} does not have exactly one transition for each symbol in alphabet"
+                return False, f"Estado {state} não tem exatamente uma transição para cada símbolo no alfabeto"
         
-        return True, "Deterministic Automaton"
+        return True, "Autômato Determinístico"
 
 
     def apply_complement(self) -> 'AF':
@@ -65,10 +65,10 @@ class AF(ABC):
         new_state = set([REVERSE_FINAL_STATE])
         automaton_rev = copy.deepcopy(self)
 
-        # Add New State
+        # Adiciona Novo Estado
         automaton_rev.states.append(new_state)
         
-        # Invert transitions
+        # Inverte transições
         new_transitions = []
         for t in automaton_rev.transition_function:
             if t[0][0] == set(NULL_STATE) or t[1] == set(NULL_STATE):
@@ -76,14 +76,18 @@ class AF(ABC):
             new_transitions.append([[t[1],t[0][1]],t[0][0]])
         automaton_rev.transition_function = new_transitions
 
-        # Connect New 'ε' to accept 
+        # Conecta Novo 'ε' aos estados de aceitação
         for state in automaton_rev.accept_states:
             state = set(state)
             automaton_rev.transition_function.append([[new_state,'ε'], state])
 
-        automaton_rev.accept_states = [automaton_rev.start_state] 
+        # Estados de aceitação são o estado inicial
+        automaton_rev.accept_states = [automaton_rev.start_state]
+
+        # Estado inicial é o novo estado
         automaton_rev.start_state = new_state
 
+        # Remove o estado nulo
         automaton_rev.states.remove(set(NULL_STATE))
         
         return automaton_rev
