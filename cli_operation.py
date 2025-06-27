@@ -60,3 +60,4 @@ class CLI_Printer:
 
         if (result == 'Aceita' and not valid) or (result == 'Rejeita' and valid):
             print('Automato ou análise está errada!') 
+

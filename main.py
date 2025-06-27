@@ -1,6 +1,7 @@
 from file_operations import GrammarLoader, AutomatonLoader
 from convert import Convert
 from test_input import g1
+from cli_operation import CLI_Printer
 
 if __name__ == '__main__':
     try:
@@ -10,6 +11,7 @@ if __name__ == '__main__':
 
     AFND_1 = Convert.convert_GLUD_AFND(grammar)
     AFD_1 = Convert.convert_AFND_AFD(AFND_1)
+    print(CLI_Printer.check_valid_word('b', AFD_1))
     COMP_1 = AFD_1.apply_complement()
     REV_1 = AFD_1.apply_reverse()
 
